@@ -1,0 +1,65 @@
+version: "3.7"
+services:
+  web:
+    image: nginx:alpine
+    depends_on:
+      - app
+    ports:
+      - "8082:80"
+    volumes:
+      - ./app/conf.d:/etc/nginx/conf.d
+      - first-volume-data:/project/dataset/volume1
+      - second-volume-data:/project/dataset/volume2
+      - third-volume-data:/project/dataset/volume3
+    networks:
+      - custom
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  app:
+    image: unicorn-server
+    networks:
+      - custom
+    volumes:
+      - first-volume-data:/project/dataset/volume1
+      - second-volume-data:/project/dataset/volume2
+      - third-volume-data:/project/dataset/volume3
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+networks:
+  custom:
+    external: true
+
+volumes:
+  first-volume-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/kblinov/data_storage_system/dataset/volume1
+      #device: C:\book\first-volume-data
+  second-volume-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/kblinov/data_storage_system/dataset/volume2
+      #device: C:\book\second-volume-data
+  third-volume-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/kblinov/data_storage_system/dataset/volume3
+      #device: C:\book\third-volume-data
+# docker-compose -f docker-compose-ci.yaml up -d
+# docker network create -d overlay custom
+
+# docker stack deploy -c docker-compose-ci.yaml storage_stack
+# docker service ls
+# docker stats -a
